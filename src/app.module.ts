@@ -4,6 +4,9 @@ import { AppController } from './app.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppService } from './app.service';
 import { DocumentsModule } from './documents/documents.module';
+import { EmbeddingsModule } from './embeddings/embeddings.module';
+import { VectorStoreModule } from './vector-store/vector-store.module';
+import { RagModule } from './rag/rag.module';
 
 @Module({
   imports: [
@@ -15,6 +18,9 @@ import { DocumentsModule } from './documents/documents.module';
       synchronize: true, // Only for development
     }),
     DocumentsModule,
+    EmbeddingsModule,
+    VectorStoreModule,
+    RagModule,
   ],
   controllers: [AppController],
   providers: [AppService],
