@@ -2,11 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Document, DocumentStatus } from './entities/document.entity';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pdfParse = require('pdf-parse');
+import * as pdfParseLib from 'pdf-parse';
 import * as mammoth from 'mammoth';
 import { Express } from 'express';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
+
+import { EmbeddingsService } from '../embeddings/embeddings.service';
+import { VectorStoreService } from '../vector-store/vector-store.service';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface DocumentChunk {
   text: string;
@@ -19,6 +22,8 @@ export class DocumentsService {
   constructor(
     @InjectRepository(Document)
     private documentsRepository: Repository<Document>,
+    private embeddingsService: EmbeddingsService,
+    private vectorStoreService: VectorStoreService,
   ) { }
 
   async processDocument(file: Express.Multer.File) {
@@ -26,7 +31,7 @@ export class DocumentsService {
     const document = new Document();
     document.originalName = file.originalname;
     document.status = DocumentStatus.PROCESSING;
-    const savedDocument = await this.documentsRepository.save(document);
+    let savedDocument = await this.documentsRepository.save(document);
 
     try {
       // Extract text based on file type
@@ -34,7 +39,9 @@ export class DocumentsService {
 
       switch (file.mimetype) {
         case 'application/pdf':
-          const pdfData = await pdfParse(file.buffer);
+          const { PDFParse } = pdfParseLib as any;
+          const parser = new PDFParse({ data: file.buffer });
+          const pdfData = await parser.getText();
           textContent = pdfData.text;
           break;
 
@@ -56,11 +63,28 @@ export class DocumentsService {
       // Chunk the text content
       const chunks = await this.chunkText(textContent, savedDocument.id);
 
-      // For now, just save the document as ready with chunk count
-      // Later, we'll store embeddings in vector DB
+      // Embed chunks
+      const chunkTexts = chunks.map((c) => c.text);
+      const embeddings = await this.embeddingsService.embedDocuments(chunkTexts);
+
+      // Store in Vector DB
+      await this.vectorStoreService.addDocuments(
+        chunks.map((chunk, index) => ({
+          id: uuidv4(), // Unique ID for the chunk in Vector DB
+          text: chunk.text,
+          metadata: {
+            documentId: savedDocument.id,
+            chunkIndex: index,
+            originalName: savedDocument.originalName,
+          },
+          embedding: embeddings[index],
+        })),
+      );
+
+      // Save the document as ready with chunk count
       savedDocument.status = DocumentStatus.READY;
       savedDocument.chunkCount = chunks.length;
-      await this.documentsRepository.save(savedDocument);
+      savedDocument = await this.documentsRepository.save(savedDocument);
 
       return {
         id: savedDocument.id,
