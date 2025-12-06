@@ -2,14 +2,14 @@
 
 A NestJS-based API service for performing Retrieval-Augmented Generation (RAG) on uploaded documents. This service allows users to upload documents (PDF, DOCX, TXT), chunks and embeds them into a vector database, and perform semantic search to answer questions based on the document's context.
 
-## 🚀 Key Features
+## Key Features
 
 *   **Document Processing**: Seamlessly upload and process PDF, DOCX, and TXT files.
 *   **Vector Search**: Uses ChromaDB for efficient storage and retrieval of vector embeddings.
 *   **RAG Architecture**: Retrieves relevant context to generate accurate answers using LLMs (via OpenRouter/OpenAI).
 *   **Swagger Documentation**: Fully documented API endpoints available at `/api`.
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 1.  **ChromaDB**: An open-source vector database used to store high-dimensional embeddings of document chunks, enabling efficient semantic similarity search.
 2.  **LangChain (Text Splitters)**: Provides the `RecursiveCharacterTextSplitter` algorithm to intelligently break down large documents into manageable chunks while preserving context.
@@ -17,12 +17,11 @@ A NestJS-based API service for performing Retrieval-Augmented Generation (RAG) o
 4.  **Mammoth**: A specialized library for converting `.docx` files into raw text by targeting the underlying XML structure, ensuring high-quality text extraction.
 5.  **PDF-Parse**: A lightweight library for extracting raw text content from PDF files, serving as a critical preprocessing step for the RAG pipeline.
 
-## 📋 Prerequisites
-
+## Prerequisites
 *   [Node.js](https://nodejs.org/) (v16+ recommended)
 *   [Docker](https://www.docker.com/) (for running ChromaDB)
 
-## ⚙️ Setup & Installation
+## Setup & Installation
 
 1.  **Clone the repository**:
     ```bash
@@ -59,7 +58,7 @@ A NestJS-based API service for performing Retrieval-Augmented Generation (RAG) o
     npm run start:dev
     ```
 
-## 📖 API Documentation
+## API Documentation
 
 The API includes Swagger documentation for interactive exploration.
 
@@ -83,16 +82,6 @@ curl -X POST 'http://localhost:3000/rag/query' \
   }'
 ```
 
-## 🧪 Running Tests
-
-```bash
-# unit tests
-npm run test
-
-# e2e tests
-npm run test:e2e
-```
-
-## 📄 License
+## License
 
 This project is [UNLICENSED](LICENSE).
